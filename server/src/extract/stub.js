@@ -1,7 +1,8 @@
 /**
  * Extrator sem IA: heurísticas simples sobre o conteúdo coletado. Cada achado aponta a
  * evidência (trecho) e uma confiança baixa, porque tudo passa pela revisão da pessoa.
- * Um extrator com IA deve implementar a mesma interface: extract({ source, collected }) -> Finding[].
+ * Um extrator com IA deve implementar a mesma interface: extract({ source, collected }) -> Finding[],
+ * onde Finding = { category, key, value, evidence, evidenceUrl, confidence }.
  */
 
 const SKILLS = [
@@ -30,7 +31,6 @@ const PROFESSIONS = [
   /professor(?:a)?(?: de [\wÀ-ú]+)?/i,
 ];
 
-const MAX_FINDINGS = 25;
 const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 function snippet(text, index, length) {
@@ -96,7 +96,10 @@ function fromGithub({ profile, repos }) {
 export const stubExtractor = {
   name: 'stub',
   async extract({ collected }) {
-    const findings = collected.kind === 'github' ? fromGithub(collected.github) : fromPage(collected.page);
-    return findings.slice(0, MAX_FINDINGS);
+    if (collected.kind === 'github') {
+      return fromGithub(collected.github).map((f) => ({ ...f, evidenceUrl: collected.github.profile.htmlUrl }));
+    }
+    // Cada achado aponta a página exata de onde veio; o worker descarta repetições e limita a quantidade.
+    return collected.pages.flatMap((page) => fromPage(page).map((f) => ({ ...f, evidenceUrl: page.url })));
   },
 };

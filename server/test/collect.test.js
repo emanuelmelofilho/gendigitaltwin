@@ -31,13 +31,20 @@ test('parseHtml extrai título, descrição e texto sem scripts', () => {
 
 test('extrator stub aponta evidência e evita falsos positivos de palavras comuns', async () => {
   const findings = await stubExtractor.extract({
-    collected: { kind: 'pagina', page: { title: 'Ana — Desenvolvedora front-end', description: null, text: 'Uso React e Node.js. Let us go to the park; I excel at rust removal.' } },
+    collected: {
+      kind: 'pagina',
+      pages: [
+        { url: 'https://ana.dev/', title: 'Ana — Desenvolvedora front-end', description: null, text: 'Uso React. Let us go to the park; I excel at rust removal.' },
+        { url: 'https://ana.dev/projetos', title: null, description: null, text: 'Projeto em Node.js' },
+      ],
+    },
   });
   const values = findings.map((f) => f.value);
   assert.ok(values.includes('Desenvolvedora front-end'));
   assert.ok(values.includes('React') && values.includes('Node.js'));
   assert.ok(!values.includes('Go') && !values.includes('Excel') && !values.includes('Rust'));
   assert.ok(findings.every((f) => f.evidence && f.confidence > 0));
+  assert.equal(findings.find((f) => f.value === 'Node.js').evidenceUrl, 'https://ana.dev/projetos');
 });
 
 test('extrator stub resume linguagens e tópicos do GitHub', async () => {

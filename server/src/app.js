@@ -6,6 +6,7 @@ import { goalsRouter } from './routes/goals.js';
 import { informationsRouter } from './routes/informations.js';
 import { personRouter } from './routes/person.js';
 import { scenariosRouter } from './routes/scenarios.js';
+import { searchesRouter } from './routes/searches.js';
 import { sourcesRouter } from './routes/sources.js';
 import { timelineRouter } from './routes/timeline.js';
 
@@ -22,6 +23,7 @@ export function createApp() {
   app.use('/api/goals', goalsRouter);
   app.use('/api/informations', informationsRouter);
   app.use('/api/sources', sourcesRouter);
+  app.use('/api/searches', searchesRouter);
   app.use('/api/scenarios', scenariosRouter);
   app.use('/api/decisions', decisionsRouter);
   app.use('/api/timeline', timelineRouter);

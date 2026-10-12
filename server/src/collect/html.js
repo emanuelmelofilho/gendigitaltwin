@@ -18,8 +18,33 @@ function meta(html, name) {
   return null;
 }
 
-/** Extrai título, descrição e texto visível de uma página HTML. */
-export function parseHtml(html) {
+function attr(tag, name) {
+  const m = tag.match(new RegExp(`(?:^|\\s)${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s>]+))`, 'i'));
+  return m ? decodeEntities(m[1] ?? m[2] ?? m[3]).trim() : null;
+}
+
+/** Links da página, com endereço absoluto, texto e rel. */
+export function parseLinks(html, baseUrl) {
+  const links = [];
+  for (const m of html.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/gi)) {
+    const href = attr(m[1], 'href');
+    if (!href || href.startsWith('#') || /^(mailto|tel|javascript):/i.test(href)) continue;
+    let url;
+    try {
+      url = new URL(href, baseUrl);
+    } catch {
+      continue;
+    }
+    if (!['http:', 'https:'].includes(url.protocol)) continue;
+    url.hash = '';
+    const text = decodeEntities(m[2].replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim();
+    links.push({ url: url.href, text: text.slice(0, 200), rel: (attr(m[1], 'rel') ?? '').toLowerCase() });
+  }
+  return links;
+}
+
+/** Extrai título, descrição, texto visível e links de uma página HTML. */
+export function parseHtml(html, baseUrl) {
   const title = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1];
   const text = html
     .replace(/<!--[\s\S]*?-->/g, ' ')
@@ -30,5 +55,6 @@ export function parseHtml(html) {
     title: title ? decodeEntities(title).replace(/\s+/g, ' ').trim() : null,
     description: meta(html, 'description') ?? meta(html, 'og:description'),
     text: decodeEntities(text).replace(/[ \t]+/g, ' ').replace(/\s*\n\s*/g, '\n').trim().slice(0, 100_000),
+    links: baseUrl ? parseLinks(html, baseUrl) : [],
   };
 }

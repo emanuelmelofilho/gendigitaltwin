@@ -33,6 +33,9 @@ function Finding({ info, onDone }) {
         <p className="finding-value">{formatValue(info)}</p>
       )}
       {info.evidence && <blockquote>{info.evidence}</blockquote>}
+      {info.evidenceUrl && info.evidenceUrl !== info.sourceUrl && (
+        <div className="muted url">na página <a href={info.evidenceUrl} target="_blank" rel="noreferrer">{info.evidenceUrl}</a></div>
+      )}
       {!editing && (
         <div className="actions left">
           <button className="primary" disabled={busy} onClick={() => review('confirmar')}>Confirmar</button>

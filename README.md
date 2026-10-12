@@ -55,15 +55,28 @@ server/
 - O que a pessoa rejeita não é sugerido de novo em coletas futuras.
 - Cada premissa da simulação mostra de onde veio: informada pela pessoa, fonte externa ou valor padrão.
 
-### Coleta de fontes
+### Robô de coleta
 
+O robô tem duas formas de descobrir fontes. Em nenhuma delas algo é coletado sem autorização da pessoa.
+
+**A partir dos links informados** (`server/src/collect/`)
 1. A pessoa informa o link e marca a autorização (`consent: true` é obrigatório na API).
-2. A API grava a fonte e enfileira `coletar_fonte`; o worker coleta sem bloquear o cadastro.
-3. O extrator devolve achados com evidência; eles entram como `pendente`.
-4. A pessoa revisa cada achado.
+2. O worker lê a página e até 4 páginas do mesmo site cujo caminho ou texto do menu indique “sobre”, “projetos”,
+   “currículo” etc. (`links.js`). Cada achado guarda a página exata de onde veio (`evidence_url`).
+3. Perfis em outros sites apontados pela página (`rel="me"`, GitHub, GitLab, Behance, Medium, Lattes...) e o site
+   indicado no perfil do GitHub viram **sugestões** de fonte (`status = 'sugerida'`).
 
-Não há busca por nome. Páginas são coletadas só se o `robots.txt` permitir; endereços internos/privados são recusados.
-Por enquanto só HTML e texto são lidos (PDF de currículo ainda não).
+**Busca pelo nome** (`server/src/search/`, opcional)
+- Ativada com `BRAVE_SEARCH_API_KEY` no `.env` ([Brave Search API](https://brave.com/search/api/)).
+- A pessoa autoriza a busca e pode acrescentar termos (cidade, profissão) para separar homônimos.
+- Os resultados viram **sugestões**; limite de 5 buscas por dia e uma por vez.
+
+**Sugestões** só são coletadas quando a pessoa confirma que o link é sobre ela (“É sobre mim — coletar”).
+Descartadas, não voltam a ser sugeridas. Links equivalentes (http/https, `www`, barra final) não se repetem.
+
+Regras gerais: o `robots.txt` de cada site é respeitado; endereços internos/privados são recusados; redes que exigem
+login (LinkedIn, Instagram, Facebook, X...) não são sugeridas. Por enquanto só HTML e texto são lidos (PDF ainda não).
+Tudo o que o extrator encontra entra como `pendente` e passa pela revisão.
 
 ### Trocar o extrator por IA
 

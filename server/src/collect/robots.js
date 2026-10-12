@@ -46,9 +46,16 @@ export function isPathAllowed(robotsTxt, path) {
   return best ? best.allow : true;
 }
 
-export async function isAllowedByRobots(url) {
-  const res = await safeFetch(new URL('/robots.txt', url), { maxBytes: 500_000, timeoutMs: 5_000, accept: 'text/plain' });
-  if (res.status >= 500) return false; // servidor indisponível: por segurança, não coletar
-  if (res.status >= 400) return true; // sem robots.txt
-  return isPathAllowed(res.body, url.pathname + url.search);
+async function fetchRobots(origin) {
+  const res = await safeFetch(new URL('/robots.txt', origin), { maxBytes: 500_000, timeoutMs: 5_000, accept: 'text/plain' });
+  if (res.status >= 500) return null; // servidor indisponível: por segurança, nada é permitido
+  if (res.status >= 400) return ''; // sem robots.txt: tudo é permitido
+  return res.body;
+}
+
+/** `cache` (origem -> conteúdo) evita baixar o robots.txt de novo para cada página do mesmo site. */
+export async function isAllowedByRobots(url, cache = new Map()) {
+  if (!cache.has(url.origin)) cache.set(url.origin, fetchRobots(url.origin));
+  const robots = await cache.get(url.origin);
+  return robots !== null && isPathAllowed(robots, url.pathname + url.search);
 }

@@ -30,11 +30,13 @@ async function addVersion(db, informationId, value, status, actor, note) {
   );
 }
 
-export async function insertInformation(db, { personId, category, key, value, origin, sourceId = null, evidence = null, confidence = null, status, actor, note }) {
+export async function insertInformation(db, {
+  personId, category, key, value, origin, sourceId = null, evidence = null, evidenceUrl = null, confidence = null, status, actor, note,
+}) {
   const { rows } = await db.query(
-    `INSERT INTO informations (person_id, category, key, value, origin, source_id, evidence, confidence, status)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
-    [personId, category, key, JSON.stringify(value), origin, sourceId, evidence, confidence, status],
+    `INSERT INTO informations (person_id, category, key, value, origin, source_id, evidence, evidence_url, confidence, status)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+    [personId, category, key, JSON.stringify(value), origin, sourceId, evidence, evidenceUrl, confidence, status],
   );
   await addVersion(db, rows[0].id, value, status, actor, note);
   return camelize(rows[0]);

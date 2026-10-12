@@ -190,3 +190,5 @@ details[open] > summary::before { content: '▾ '; }
   .timeline li { grid-template-columns: 1fr; gap: 0.1rem; }
   .stepper li { min-width: 70px; }
 }
+.url { font-size: 0.8rem; overflow-wrap: anywhere; }
+.status.concluida { color: var(--ok); }
