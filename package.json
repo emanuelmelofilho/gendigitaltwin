@@ -1,0 +1,19 @@
+{
+  "name": "gendigitaltwin",
+  "private": true,
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "db:up": "docker compose up -d db",
+    "db:down": "docker compose down",
+    "migrate": "npm run migrate -w server",
+    "dev": "concurrently -n api,worker,web -c blue,magenta,green \"npm run dev -w server\" \"npm run worker -w server\" \"npm run dev -w client\"",
+    "test": "npm test -w server",
+    "build": "npm run build -w client"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.5"
+  }
+}
